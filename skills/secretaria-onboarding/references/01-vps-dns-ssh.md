@@ -1,8 +1,8 @@
 # 01: VPS + DNS + SSH
 
-## VPS
+## VPS — qual VPS é escolha do usuário (pergunte, não escolha)
 
-A VPS fornecida pelo usuário (`<VPS_IP>`; ver `guardrails.md`). O orquestrador (Coolify, Portainer, outro painel, ou nenhum) já instalado (brownfield) ou a instalar no deploy do tier (escolhido em 1c). Nunca tocar em outra VPS da conta.
+O **`<VPS_IP>` vem do usuário**, nunca de um chute. Se ele não disse qual e o MCP lista mais de uma VM na conta (`VPS_getVirtualMachinesV1`), **apresente as opções (id, IP, hostname, plano) e pergunte qual usar** — ter o MCP conectado não autoriza escolher por ele. Confirmada a VPS, **nunca toque em outra** da conta (ver `guardrails.md`). O orquestrador (Coolify, Portainer, outro painel, ou nenhum) já está instalado (brownfield) ou será instalado no deploy do tier (escolhido em 1c).
 
 ## SSH: sondar o acesso antes de gerar chave
 
@@ -36,7 +36,7 @@ Validado empiricamente: `VPS_createPublicKeyV1`/`VPS_attachPublicKeyV1` **regist
 
 ## DNS (MCP Hostinger, domínio `<seu-dominio>`)
 
-A-records apontando pra `<VPS_IP>` (os três da app são o contrato; ver 1c):
+O **domínio raiz (`<seu-dominio>`) é escolha do usuário**: liste os domínios da conta (`domains_getDomainListV1`) e **pergunte qual usar como raiz** — nunca assuma um porque "estava na conta". Definido o raiz, crie os A-records apontando pra `<VPS_IP>` (os três da app são o contrato; ver 1c):
 - `agentes.<seu-dominio>`: Secretária V4
 - `chatwoot.<seu-dominio>`: Chatwoot (Pro ou OSS)
 - `langfuse.<seu-dominio>`: Langfuse (recomendado)

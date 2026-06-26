@@ -4,13 +4,35 @@
 
 A VPS fornecida pelo usuário (`<VPS_IP>`; ver `guardrails.md`). O orquestrador (Coolify, Portainer, outro painel, ou nenhum) já instalado (brownfield) ou a instalar no deploy do tier (escolhido em 1c). Nunca tocar em outra VPS da conta.
 
-## SSH (comando exato)
+## SSH: sondar o acesso antes de gerar chave
 
+**Nunca peça "o caminho da chave SSH" de cara.** O acesso ou **já existe** (sonde), ou o operador cadastra uma chave nova **pelo painel do provedor** (Hostinger ou qualquer outro). **Nunca use senha root.** Ordem:
+
+**1. Sonde o acesso** (sem perguntar nada): tente logar com as chaves que o operador já tem (default em `~/.ssh` + agent):
+```sh
+ssh -o ConnectTimeout=12 -o BatchMode=yes -o StrictHostKeyChecking=accept-new root@<VPS_IP> 'echo OK; hostname'
+```
+- Saiu `OK` → **há acesso**; siga, **não pergunte nada de chave**. Anote a chave que funcionou para reusar.
+- `Permission denied (publickey…)`, exit ≠ 0 → **sem acesso**; vá ao passo 2. (`BatchMode=yes` evita travar pedindo senha; o `dangerouslyDisableSandbox: true` é obrigatório por ser rede.)
+
+**2. Sem acesso: gere a chave e imprima a pública para o operador cadastrar no painel:**
+```sh
+ssh-keygen -t ed25519 -f ~/.ssh/fazer-ai-<nome> -N "" -C "fazer-ai-onboarding"
+cat ~/.ssh/fazer-ai-<nome>.pub
+```
+Mostre essa linha (`ssh-ed25519 …`) e instrua o operador a colá-la no painel da VPS (você **não** faz isto pela API, ver *Nota MCP*):
+- **Hostinger:** painel da VPS → card **"Chave SSH"** → **"Gerenciar"** → **"+ Chave SSH"** → cole a chave pública → **"Salvar"**.
+- **Outro provedor:** o equivalente no painel dele ("SSH Keys" / "Add SSH key" da VPS).
+
+**3. Confirme** re-sondando (passo 1) até logar; só então use o **comando de trabalho** (determinístico) no resto do fluxo:
 ```sh
 ssh -o IdentitiesOnly=yes -o IdentityAgent=none -o ConnectTimeout=12 -o BatchMode=yes \
     -o StrictHostKeyChecking=accept-new -i ~/.ssh/<sua-chave> root@<VPS_IP>
 ```
 Bash com rede → `dangerouslyDisableSandbox: true`. Scripts/SQL longos: base64 local → pipe → `base64 -d` no destino.
+
+### Nota MCP: cadastre a chave pelo painel, não pela API
+Validado empiricamente: `VPS_createPublicKeyV1`/`VPS_attachPublicKeyV1` **registram a chave mas não a injetam numa VM em execução** — após o attach ela não entra no `authorized_keys` e a VM não reinicia; aplica só no provisionamento (`setupPurchasedVirtualMachine.public_key`) ou num `recreate` (que apaga os dados). `VPS_getAttachedPublicKeysV1` responde `Route is not found`; não há **detach**. Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3), em vez de usar a API.
 
 ## DNS (MCP Hostinger, domínio `<seu-dominio>`)
 

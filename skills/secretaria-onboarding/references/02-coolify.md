@@ -8,20 +8,41 @@ A VPS pode já vir com Coolify (brownfield). Nesse caso, reaproveite o existente
 
 Para um teste do zero, reinstale: wipe do Docker + `/data/coolify` + instalador oficial do Coolify. **Só faça isso numa VPS confirmada como descartável** (`guardrails.md`); é destrutivo. Resultado esperado: instalador sai `0`, "Your instance is ready to use!", 4 containers core Up+healthy (`coolify`, `coolify-db`, `coolify-redis`, `coolify-realtime`).
 
-## 1º admin (browser: único passo de browser no Tier A)
+## 1º admin (o ÚNICO passo do usuário no Tier A)
 
-Real: o usuário cria. Teste: você cria. A partir daqui, tudo é API/SSH.
+Real: **o usuário cria** o 1º admin pelo browser em `http://<VPS_IP>:8000` (gate de conta). Teste: você cria. **Esse é o único passo manual do Tier A.** Depois do admin, **NÃO peça mais nada ao usuário** — o token e o Instance Domain você faz por SSH (abaixo). **Nunca** mande o usuário abrir "Settings → …".
 
-## Instance Domain (fecha o gap do IP cru)
+## API Access (token) — você faz por SSH, não pela UI
 
-Settings → general → **Instance Domain** = `https://coolify.<seu-dominio>`. Exige o A-record da etapa 1. Sem isso o painel fica só em `http://<VPS_IP>:8000` (HTTP puro, sem TLS).
+Dois passos, ambos por SSH, **sem o usuário** (validado E2E no Coolify 4.1.2):
 
-## API Access
+**1. Habilite a API** — vem **desabilitada** por padrão; sem isto todo request dá `403 {"message":"API is disabled."}`:
+```sh
+docker exec coolify-db psql -U coolify -d coolify -tc "UPDATE instance_settings SET is_api_enabled = true;"
+```
+Pega na hora, sem restart. `allowed_ips` vazio (default) = sem restrição de origem; **não mexa** (o agente acessa de fora).
 
-Settings → Advanced → **API Access**; gere um token root. Guarde transitoriamente (scratchpad), **nunca** em repo/log/commit.
-- Base da API: `http://<VPS_IP>:8000/api/v1`, header `Authorization: Bearer <token>`.
+**2. Gere o token root.** O Coolify sobrescreve o `createToken` do Sanctum e exige `session('currentTeam')` (a tabela `personal_access_tokens` tem `team_id` NOT NULL) — o `createToken` cru falha com `team_id null`, então **semeie a sessão** antes. O snippet tem aspas: use o base64-pipe da `00`.
+```sh
+docker exec coolify php artisan tinker --execute='$u = App\Models\User::first(); session(["currentTeam" => $u->teams()->first()]); echo $u->createToken("fazer-ai-onboarding", ["*"])->plainTextToken;'
+```
+A saída `<id>|<token>` é o Bearer (ability `*` = root). Guarde transitoriamente (scratchpad), **nunca** em repo/log/commit.
+- Base da API: `http://<VPS_IP>:8000/api/v1`, header `Authorization: Bearer <token>`. Valide: `GET /api/v1/servers` → 200.
 
-## DB do Coolify (necessário pro fix de FQDN; ver gotchas)
+## Instance Domain — você seta por SSH (cosmético: NÃO bloqueia o deploy)
+
+Só troca o acesso ao **painel** de `http://<VPS_IP>:8000` para `https://coolify.<seu-dominio>` (TLS). **O deploy não depende disto** (API e serviços rodam pelo IP cru), então é polimento: faça por SSH, sem o usuário, e **não trave** o onboarding se falhar. Exige o A-record `coolify.` (etapa 1). Validado E2E (Coolify 4.1.2):
+```sh
+docker exec coolify-db psql -U coolify -d coolify -tc "UPDATE instance_settings SET fqdn='https://coolify.<seu-dominio>';"
+docker restart coolify
+```
+O `UPDATE` **sozinho não regenera** o proxy; é o **`restart coolify`** (o app, **NÃO** `coolify-proxy`) que reescreve `/data/coolify/proxy/dynamic/coolify.yaml` com a rota `Host(coolify.<seu-dominio>)`. Derruba painel+API ~30-40s (o token já gerado **sobrevive**; faça este passo logo após o token ou por último, nunca no meio de uma chamada à API). Depois **valide**:
+```sh
+curl -so /dev/null -w "%{http_code} ssl=%{ssl_verify_result}\n" https://coolify.<seu-dominio>
+```
+→ `200`/`302` com `ssl=0` (cert válido; o ACME emite quando o A-record resolve).
+
+## DB do Coolify (acesso direto; ver gotchas)
 
 ```sh
 docker exec -i coolify-db psql -U coolify -d coolify

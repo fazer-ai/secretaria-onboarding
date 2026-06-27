@@ -32,7 +32,7 @@ ssh -o IdentitiesOnly=yes -o IdentityAgent=none -o ConnectTimeout=12 -o BatchMod
 Bash com rede → `dangerouslyDisableSandbox: true`. Scripts/SQL longos: base64 local → pipe → `base64 -d` no destino.
 
 ### Nota MCP: cadastre a chave pelo painel, não pela API
-Validado empiricamente: `VPS_createPublicKeyV1`/`VPS_attachPublicKeyV1` **registram a chave mas não a injetam numa VM em execução** — após o attach ela não entra no `authorized_keys` e a VM não reinicia; aplica só no provisionamento (`setupPurchasedVirtualMachine.public_key`) ou num `recreate` (que apaga os dados). `VPS_getAttachedPublicKeysV1` responde `Route is not found`; não há **detach**. Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3), em vez de usar a API.
+Validado empiricamente: `VPS_createPublicKeyV1`/`VPS_attachPublicKeyV1` **registram a chave mas não a injetam numa VM em execução** — após o attach ela não é instalada nas chaves autorizadas da VM em execução e a VM não reinicia; aplica só no provisionamento (`setupPurchasedVirtualMachine.public_key`) ou num `recreate` (que apaga os dados). `VPS_getAttachedPublicKeysV1` responde `Route is not found`; não há **detach**. Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3), em vez de usar a API.
 
 ## DNS (MCP Hostinger, domínio `<seu-dominio>`)
 

@@ -19,13 +19,7 @@ Coolify ou Portainer presentes e saudáveis ganham (reusar > instalar; o 1b deci
 outro painel cai no Tier C** (compose genérico, adaptado ao painel com seu conhecimento dele). Nenhum sinal
 claro → **pergunte ao usuário**, não adivinhe.
 
-> **Painéis não ganham trilha dedicada, por escolha.** Manter doc por painel sem validar apodrece e induz ao
-> erro; o Tier C entrega o compose genérico e você adapta ao painel (Easypanel/Dokploy/etc.) na hora. O alvo
-> é o contrato abaixo; o painel é só o meio.
-
-> **Status de validação:** A e B foram **rodados E2E** numa VPS real. C (compose genérico) está
-> **estruturado a partir dos artefatos reais, ainda NÃO rodado E2E** (o doc carrega o aviso). Trate C como
-> "primeira run guiada", não como caminho provado.
+> **Tier C ainda não foi rodado E2E** (A e B sim); o doc dele carrega o aviso. Trate C como primeira run guiada.
 
 ## O contrato de deploy (o que a trilha entrega à espinha)
 
@@ -61,6 +55,5 @@ Entregou os 5 → vá direto pra **etapa 6** (a mesma pra todos os tiers).
   O 1b já sinaliza quem detém as portas.
 - **Não sobrescreva `command:`** no serviço da v4: o CMD da imagem faz `bootstrap → migrate deploy →
   serve`. Um `command:` próprio quebra o boot.
-- **v4 → Chatwoot pela URL pública**: a v4 manda o header de auth como `api-access-token` (hífen), que
-  sobrevive a qualquer reverse proxy; o `deployment_connect` funciona contra a URL **pública** do Chatwoot
+- **v4 → Chatwoot pela URL pública**: o `deployment_connect` funciona contra a URL **pública** do Chatwoot,
   sem gambiarra de rede interna (detalhe na gotcha de [`docs/deploy-portainer.md`](../docs/deploy-portainer.md)).

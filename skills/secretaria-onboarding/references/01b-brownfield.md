@@ -23,7 +23,7 @@ PROBE
 
 ## 2. Ler os sinais
 
-O Coolify nomeia cada stack `<serviço>-<uuid>` e põe o UUID no label `com.docker.compose.project`. **Identifique o serviço pela IMAGEM, não pelo nome do projeto** (que é um UUID opaco; o próprio Coolify roda nos projetos `source` + `coolify-proxy`). Fingerprints:
+**Identifique o serviço pela IMAGEM, não pelo nome do projeto** (é um UUID opaco). Fingerprints:
 
 | Serviço | Imagem (fingerprint) | Saúde = todos healthy | Versão |
 |---|---|---|---|
@@ -32,7 +32,7 @@ O Coolify nomeia cada stack `<serviço>-<uuid>` e põe o UUID no label `com.dock
 | **Langfuse** | `langfuse/langfuse` (+ `-worker`, `clickhouse`, **`minio`**) | web+worker+clickhouse+minio Up | tag (ex. `:3`) |
 | **Secretária v4** | `ghcr.io/fazer-ai/secretaria-v4` (+ `pgvector`) | container Up + `/api/health` | tag |
 
-As **portas das apps não ficam expostas no host** (ficam atrás do Traefik, na rede interna do Coolify): só o Coolify (`:8000`) e o proxy (`:80`/`:443`) escutam no host. `curl localhost:80` sem o Host certo dá 404/503 (esperado). Pra health de uma app, use o FQDN dela (via Traefik) ou entre na rede do container.
+As portas das apps **não** ficam expostas no host (atrás do Traefik); só Coolify (`:8000`) e o proxy (`:80`/`:443`) escutam. `curl localhost:80` sem o Host certo dá 404/503 (esperado). Pra health de uma app, use o FQDN dela.
 
 ## 3. Matriz de decisão (por serviço)
 
@@ -53,7 +53,7 @@ Greenfield = tudo ausente = instala tudo. O resultado é um inventário por serv
 ## 5. Reaproveitar (capturar pro state, sem recriar)
 
 Pra um serviço que vai reusar, capture o que as etapas seguintes precisam:
-- **No Coolify, do container ao FQDN:** o label `com.docker.compose.project` de cada container **é o `uuid` do serviço** no `coolify-db` (tabela `services`). Cruze pra pegar o endpoint público (o app principal carrega o `fqdn`; sub-componentes como `sidekiq`/`minio`/`clickhouse` ficam com `fqdn` vazio):
+- **No Coolify, do container ao FQDN:** cruze o label `com.docker.compose.project` (= `uuid` do serviço) com o `coolify-db` pra pegar o endpoint público (sub-componentes como `sidekiq`/`minio`/`clickhouse` têm `fqdn` vazio):
 
   ```sh
   docker exec -i coolify-db psql -U coolify -d coolify -c \

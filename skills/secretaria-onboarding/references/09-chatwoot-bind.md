@@ -24,7 +24,7 @@ O agente **não** tem o token. Em vez de inventar credencial pending (o token ne
 deployment_set_accounts { "account_ids": [1] }   // dry_run:false pra aplicar
 ```
 
-Conecta as contas selecionadas (cria a instância + sincroniza os inboxes pra v4) e soft-desconecta as de-selecionadas. **É este passo que conecta as contas**: o `deployment_connect` já registrou o deployment (URL + token) e listou as contas, mas são os `account_ids` aqui que ligam cada conta + sincronizam os inboxes.
+Conecta as contas selecionadas (cria a instância + sincroniza os inboxes pra v4) e soft-desconecta as de-selecionadas. **É este passo que conecta as contas** (o `deployment_connect` só registrou o deployment e listou as contas).
 
 ## 3. Bindar o inbox ao agente (`inbox_bind`)
 

@@ -11,7 +11,7 @@ Leia `~/.fazer-ai/onboarding.json` → `chatwootTier`. Eixo **independente** da 
 
 `harbor.fazer.ai/chatwoot/fazer-ai/chatwoot-pro:latest`.
 - Hub MCP: `generate_install_script` na licença do Chatwoot Pro (`<LICENSE_ID>`) → retorna `curlCommand` + `dockerLoginCommand` (login no Harbor com a robot account). Aplicar (`dry_run:false`) só com OK do usuário. **Nunca** logar o secret do Harbor.
-- O install script é um gerenciador Coolify-aware (~1200 linhas). Dele se **extrai o compose** (heredoc `COMPOSE_EOF`).
+- Dele se **extrai o compose** (heredoc `COMPOSE_EOF`).
 
 ## Deploy via API do Coolify
 

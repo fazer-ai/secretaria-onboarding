@@ -22,7 +22,7 @@ docker exec coolify-db psql -U coolify -d coolify -tc "UPDATE instance_settings 
 ```
 Pega na hora, sem restart. `allowed_ips` vazio (default) = sem restrição de origem; **não mexa** (o agente acessa de fora).
 
-**2. Gere o token root.** O Coolify sobrescreve o `createToken` do Sanctum e exige `session('currentTeam')` (a tabela `personal_access_tokens` tem `team_id` NOT NULL) — o `createToken` cru falha com `team_id null`, então **semeie a sessão** antes. O snippet tem aspas: use o base64-pipe da `00`.
+**2. Gere o token root.** O `createToken` cru falha com `team_id null`, então **semeie a sessão** (`currentTeam`) antes — é o que o snippet faz. O snippet tem aspas: use o base64-pipe da `00`.
 ```sh
 docker exec coolify php artisan tinker --execute='$u = App\Models\User::first(); session(["currentTeam" => $u->teams()->first()]); echo $u->createToken("fazer-ai-onboarding", ["*"])->plainTextToken;'
 ```
@@ -36,7 +36,7 @@ Só troca o acesso ao **painel** de `http://<VPS_IP>:8000` para `https://coolify
 docker exec coolify-db psql -U coolify -d coolify -tc "UPDATE instance_settings SET fqdn='https://coolify.<seu-dominio>';"
 docker restart coolify
 ```
-O `UPDATE` **sozinho não regenera** o proxy; é o **`restart coolify`** (o app, **NÃO** `coolify-proxy`) que reescreve `/data/coolify/proxy/dynamic/coolify.yaml` com a rota `Host(coolify.<seu-dominio>)`. Derruba painel+API ~30-40s (o token já gerado **sobrevive**; faça este passo logo após o token ou por último, nunca no meio de uma chamada à API). Depois **valide**:
+O `UPDATE` **sozinho não regenera** o proxy; é o **`restart coolify`** (o app, **NÃO** `coolify-proxy`) que reescreve a rota do painel. Derruba painel+API ~30-40s (o token já gerado **sobrevive**; faça este passo logo após o token ou por último, nunca no meio de uma chamada à API). Depois **valide**:
 ```sh
 curl -so /dev/null -w "%{http_code} ssl=%{ssl_verify_result}\n" https://coolify.<seu-dominio>
 ```
@@ -56,7 +56,7 @@ Crie (ou reaproveite) um projeto com o **nome de exibição do usuário** (ex.: 
 
 Imagens **Pro** (Chatwoot `chatwoot-pro`; Secretária V4 no projeto `secretaria`) são privadas no Harbor: o Coolify precisa da credencial registrada **antes** de puxar, senão o deploy falha (pull denied / 401). Só no caminho Pro:
 
-1. Pegue a credencial **per-user** no hub MCP `app-fazer-ai` (`create_registry_credential`, **sem** `license_id`; dry-run → apply com OK). Uma robot cobre todos os projetos Pro do usuário (Chatwoot + Secretária).
+1. Pegue a credencial **per-user** no hub MCP `app-fazer-ai` (`create_registry_credential`, **sem** `license_id`; dry-run → apply com OK).
 2. Registre no Coolify (Servers → Registries, ou via API) apontando pra `harbor.fazer.ai` com o `username`/`secret`. **Nunca** logue o secret.
 
 No caminho **OSS** (imagem pública), pule isto inteiro.

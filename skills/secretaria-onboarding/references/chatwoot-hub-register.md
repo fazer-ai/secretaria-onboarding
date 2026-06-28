@@ -5,9 +5,8 @@ necessárias e **distintas**:
 
 - A **imagem Pro** (`harbor.fazer.ai/chatwoot/fazer-ai/chatwoot-pro`) traz o **código** (driver de Kanban,
   Baileys). Sem ela, não há Pro. A edição é escolhida no deploy (ver [`../deploy/chatwoot/README.md`](../deploy/chatwoot/README.md)).
-- A **assinatura no hub** dá a **habilitação em runtime**: o binário Pro só liga as features quando puxa
-  um `subscription_token` válido do hub. **Imagem Pro sem assinatura ativa = features travadas.** É por
-  isso que existe o passo do Refresh (não é restart de container).
+- A **assinatura no hub** dá a habilitação em runtime: **imagem Pro sem assinatura ativa = features
+  travadas.** Por isso existe o passo do Refresh (não é restart de container).
 
 ## Quando: happy-path se há licença
 
@@ -24,15 +23,6 @@ A edição é decidida **no deploy** pelo marcador do CLI `~/.fazer-ai/onboardin
 > Pré-requisitos: `FRONTEND_URL` setado no container do Chatwoot (vira o host que identifica a instância e
 > gateia o Refresh). Hub MCP `app-fazer-ai` autorizado (se o token expirou, re-autorize o OAuth). Writes do
 > hub são **dry-run por padrão**; mexa só na sua própria licença/instância (ver `guardrails.md`).
-
-## Mecanismo (por que o Refresh é necessário)
-
-A instância se identifica no hub por `ChatwootHub.installation_identifier` (UUID; é o campo "Installation
-Identifier" do super admin) + o host do `FRONTEND_URL`. `FazerAiHub.sync_subscription` faz
-`POST $FAZER_AI_HUB_URL/api/ping` (default `https://app.fazer.ai`) e recebe um `subscription_token` (JWT
-assinado) com as features (ex.: `kanban` + `account_limit`), gravado em `InstallationConfig`
-(`FAZER_AI_SUBSCRIPTION_TOKEN`). É esse token que o binário Pro consulta pra liberar Kanban. Fonte:
-`fazer-ai/chatwoot-pro` em `fazer_ai/lib/fazer_ai_hub.rb` e `fazer_ai/app/jobs/fazer_ai/internal/check_new_versions_job.rb`.
 
 ## Passos
 

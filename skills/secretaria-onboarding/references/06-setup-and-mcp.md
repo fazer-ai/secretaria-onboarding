@@ -3,7 +3,7 @@
 ## `/setup` (cria o 1º admin = SUPER_ADMIN)
 
 - Quando o banco está sem usuários, a v4 abre o `/setup`. No boot ela loga um token único e a URL pronta `${PUBLIC_URL}/setup?token=...` (a menos que `SETUP_TOKEN_REQUIRED=false`).
-- O 1º admin é criado como **SUPER_ADMIN** (`tenant_id` NULL) via `POST /api/auth/setup`. É exatamente o role que o branding (fleet-level) e as MCP tools `mcp:admin` exigem.
+- O 1º admin é criado como **SUPER_ADMIN** (`tenant_id` NULL) via `POST /api/auth/setup`.
 - **Real:** o usuário abre a URL e cria. **Teste:** você cria (headless), pegando o token do log de boot.
 - Config de boot relevante (defaults): `setupTokenRequired:true`, `signupEnabled:false`.
 

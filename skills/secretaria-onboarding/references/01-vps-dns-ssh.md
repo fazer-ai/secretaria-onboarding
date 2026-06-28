@@ -32,7 +32,7 @@ ssh -o IdentitiesOnly=yes -o IdentityAgent=none -o ConnectTimeout=12 -o BatchMod
 Bash com rede → `dangerouslyDisableSandbox: true`. Scripts/SQL longos: base64 local → pipe → `base64 -d` no destino.
 
 ### Nota MCP: cadastre a chave pelo painel, não pela API
-Validado empiricamente: `VPS_createPublicKeyV1`/`VPS_attachPublicKeyV1` **registram a chave mas não a injetam numa VM em execução** — após o attach ela não é instalada nas chaves autorizadas da VM em execução e a VM não reinicia; aplica só no provisionamento (`setupPurchasedVirtualMachine.public_key`) ou num `recreate` (que apaga os dados). `VPS_getAttachedPublicKeysV1` responde `Route is not found`; não há **detach**. Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3), em vez de usar a API.
+A API de chaves não serve aqui: `attach`/`create` registram a chave mas não a injetam numa VM em execução (só aplicam em provisionamento/`recreate`, que apaga dados). Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3).
 
 ## DNS (MCP Hostinger, domínio `<seu-dominio>`)
 
@@ -43,8 +43,6 @@ O **domínio raiz (`<seu-dominio>`) é escolha do usuário**: liste os domínios
 - **painel do orquestrador** (se houver e você quiser um domínio limpo): `coolify.` (Tier A) / `portainer.` (Tier B); outro painel usa o próprio; no compose genérico (Tier C) pode não haver painel.
 
 Tools do `hostinger-dns`: `DNS_getDNSRecordsV1` (inspecionar), `DNS_updateDNSRecordsV1` (setar). **Monitore a propagação** antes de prosseguir: o ACME (Traefik do Coolify, Caddy do Portainer, ou o proxy do tier) só emite o certificado quando o A-record resolve. Sem isso, os serviços sobem mas ficam 503/sem TLS.
-
-Os subdomínios acima são a convenção de onboarding; os nomes de exibição/projeto (orquestrador/Langfuse/branding) vêm do usuário.
 
 ## Outro provider (VPS/DNS fora da Hostinger)
 

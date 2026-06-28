@@ -1,6 +1,6 @@
 {
   "name": "secretaria",
-  "description": "Onboarding da Secretária V4 (fazer.ai).",
+  "description": "Skills da Secretária V4 (fazer.ai): onboarding, desenvolvimento e operação.",
   "owner": {
     "name": "fazer.ai",
     "url": "https://fazer.ai"
@@ -8,12 +8,12 @@
   "plugins": [
     {
       "name": "secretaria-onboarding",
-      "description": "Conduz o onboarding da Secretária V4 num VPS, do zero ao agente de atendimento: deploy por tier (Coolify/Portainer/compose), Chatwoot + Langfuse com TLS, branding, import do agente via MCP e validação E2E.",
+      "description": "Skills da Secretária V4 (fazer.ai): onboarding (subir do zero num VPS), desenvolvimento (mexer no código) e operação (debugar em produção).",
       "descriptions": {
-        "en": "Drives the Secretária V4 onboarding on a VPS, from zero to a working support agent: tiered deploy (Coolify/Portainer/compose), Chatwoot + Langfuse with TLS, branding, MCP agent import, and end-to-end validation.",
-        "pt-BR": "Conduz o onboarding da Secretária V4 num VPS, do zero ao agente de atendimento: deploy por tier (Coolify/Portainer/compose), Chatwoot + Langfuse com TLS, branding, import do agente via MCP e validação E2E."
+        "en": "Secretária V4 skills (fazer.ai): onboarding (zero-to-agent on a VPS), development (work on the code), and operation (debug a live instance).",
+        "pt-BR": "Skills da Secretária V4 (fazer.ai): onboarding (subir do zero num VPS), desenvolvimento (mexer no código) e operação (debugar em produção)."
       },
-      "version": "0.1.12",
+      "version": "0.1.13",
       "source": "./",
       "category": "devops",
       "tags": [
@@ -26,7 +26,9 @@
         "coolify",
         "portainer",
         "ia",
-        "agente"
+        "agente",
+        "dev",
+        "operacao"
       ],
       "available_skills": [
         {
@@ -45,6 +47,40 @@
             "vps",
             "coolify",
             "portainer"
+          ]
+        },
+        {
+          "name": "secretaria-dev",
+          "description": "Modo desenvolvedor: clona o repo (Free público ou Pro via git proxy do hub), orienta nos invariantes e na separação Free/Full, conduz a implementação com bun check e ajuda a gerar a própria imagem de deploy.",
+          "descriptions": {
+            "en": "Developer mode: clones the repo (public Free or Pro via the hub git proxy), guides the invariants and the Free/Full split, drives implementation with bun check, and helps build your own deploy image.",
+            "pt-BR": "Modo desenvolvedor: clona o repo (Free público ou Pro via git proxy do hub), orienta nos invariantes e na separação Free/Full, conduz a implementação com bun check e ajuda a gerar a própria imagem de deploy."
+          },
+          "category": "development",
+          "tags": [
+            "secretaria",
+            "desenvolvimento",
+            "dev",
+            "codigo",
+            "free",
+            "pro"
+          ]
+        },
+        {
+          "name": "secretaria-operation",
+          "description": "Modo operação: debuga uma instância em produção (conversa no Chatwoot + ExecutionLog + traces no Langfuse), reproduz no playground, ajusta o agente e re-valida, com toda mutação aprovada.",
+          "descriptions": {
+            "en": "Operation mode: debugs a live instance (Chatwoot conversation + ExecutionLog + Langfuse traces), reproduces in the playground, adjusts the agent and re-validates, every mutation approved.",
+            "pt-BR": "Modo operação: debuga uma instância em produção (conversa no Chatwoot + ExecutionLog + traces no Langfuse), reproduz no playground, ajusta o agente e re-valida, com toda mutação aprovada."
+          },
+          "category": "operations",
+          "tags": [
+            "secretaria",
+            "operacao",
+            "producao",
+            "debug",
+            "langfuse",
+            "chatwoot"
           ]
         }
       ]

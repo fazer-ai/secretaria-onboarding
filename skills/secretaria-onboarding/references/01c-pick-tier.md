@@ -2,7 +2,7 @@
 
 Depois do inventário brownfield (1b) você sabe **o que já existe** na VPS. Agora escolha **a trilha de
 deploy** (qual orquestrador sobe Chatwoot + v4 + Langfuse com TLS) e siga só ela. As etapas 6 a 10 (a
-**espinha**: `/setup` → MCP → branding → import → bind → E2E) são **idênticas em qualquer tier**: elas
+**espinha**: `/setup` → MCP → import → bind → E2E) são **idênticas em qualquer tier**: elas
 consomem o *resultado* do deploy, não se importam com *como* ele foi feito.
 
 ## Qual tier

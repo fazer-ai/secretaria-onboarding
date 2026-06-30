@@ -5,9 +5,10 @@
 A skill traz o **agente padrão** vendorado em `samples/agents/maria-clinica-moreira.json` ("Maria", recepção da Clínica Moreira fictícia: agendamento, FAQ via KB, voz, Asaas). **Importe-o por padrão**; só use outro export se o usuário trouxer o dele. Leia o arquivo e passe o conteúdo como `export`:
 
 ```jsonc
-agent_import { "export": <conteúdo de samples/agents/maria-clinica-moreira.json> }   // dry_run:true → preview, depois dry_run:false
+agent_import { "export": <conteúdo de samples/agents/maria-clinica-moreira.json>, "tenant": "<slug do tenant_list>" }   // dry_run:true → preview, depois dry_run:false
 ```
 
+- **SUPER_ADMIN:** inclua `tenant` (o slug/id de `tenant_list`) — o token é fleet-level. **NUNCA** `tenant_create`: o tenant do `/setup` já existe; criar outro joga o agente no tenant errado (ver etapa 6).
 - O agente é **sempre** criado **disabled + test mode**; componentes (KB/tools/etc.) recriados/reusados **por nome**.
 - Credenciais faltantes (os nomes não existem no tenant novo): o import cria uma entrada **pending** (mantendo o ref wired) e emite o aviso `credentialPending`; o usuário preenche no vault.
 - **Exceções** que não viram pending no import → `credentialNotFound`: (a) OAuth gerenciado (`google_oauth`, `mcp_oauth`), que nunca pode ser pending (vem de connect flow); (b) kinds que exigem `base_url`/`param_name`, porque o import não tem esses valores pra passar. Pra (b), crie explicitamente com `credential_create` passando `base_url`/`param_name` (ex.: `openai_compatible`); pra (a), trate o OAuth à parte.

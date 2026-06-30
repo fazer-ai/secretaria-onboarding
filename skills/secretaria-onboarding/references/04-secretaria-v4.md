@@ -27,7 +27,7 @@ Use o `docker-compose.coolify.yml` do repo via `scripts/coolify.py create-servic
 BRANDING_STORAGE_DIR=/app/storage/branding
 QUOTES_STORAGE_DIR=/app/storage/quotes
 ```
-Sem isso caem em `./data/*` (FS efêmero do container) e logo/favicon (+ PDFs de quote) somem no redeploy. Já corrigido no `docker-compose.coolify.yml`; **confira que está lá** antes da etapa 7 (branding).
+Sem isso caem em `./data/*` (FS efêmero do container) e logo/favicon (+ PDFs de quote) somem no redeploy. Já corrigido no `docker-compose.coolify.yml`; **confira que está lá** (branding é refino manual opcional depois, em `/admin/branding`, mas a persistência precisa já estar no lugar).
 
 ## Boot = CMD da imagem (NÃO sobrescrever `command`)
 

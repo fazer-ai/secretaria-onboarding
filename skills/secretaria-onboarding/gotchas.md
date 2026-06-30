@@ -34,6 +34,18 @@ Sem setar o Instance Domain (`coolify.<seu-dominio>`) o painel fica só em `http
 
 Reset recria o schema `public` e leva junto os grants da app role → próximo boot dá `42501 permission denied for schema public`. Nunca rode bare `migrate reset`; use `bun db:reset` (ou re-rode `bun db:bootstrap`).
 
+### Service compose: introspecção é por filesystem + `docker compose`, não pela fila de deploy
+
+Um **service** compose do Coolify NÃO popula `application_deployment_queues` (essa tabela é de *applications*; consultá-la pra um service devolve fila vazia e te faz achar que o deploy não rodou). O estado de um service vive em `/data/coolify/services/<uuid>/` e valida por `docker compose config`/`docker compose ps`. Pra checar se subiu: `docker compose -p <uuid> ps` (ou `ls /data/coolify/services/<uuid>/`), não a fila.
+
+### Imagem grande: não faça `docker pull` em foreground (estoura o timeout do harness)
+
+Um `docker pull` de imagem grande (Chatwoot Pro) passa de 3 min e o harness mata o comando (exit 124) — você acha que falhou e re-tenta à toa. Para **confirmar auth/existência** sem baixar, use `docker manifest inspect <imagem>` (segundos); **deixe o Coolify puxar** a imagem no deploy (assíncrono), não você em foreground.
+
+### Comandos dentro de container (runner/tinker): via helper que é dono do payload
+
+Não monte one-liners de console (Rails runner do Chatwoot, `artisan tinker`/PsySH) à mão por `ssh … "docker exec … --execute='App\Models\User…'"` **dentro do PowerShell**: o `\` de namespace e as aspas são mangled (PHP `T_NS_SEPARATOR` parse error; echo do PsySH polui o stdout). Use o helper que **é dono do payload** e o passa base64 (como o `scripts/coolify.py` já faz pro psql) — sem quoting manual atravessando PowerShell→SSH.
+
 ## Edições (imagens Free/Pro)
 
 ### Secretária Pro ≠ licença Chatwoot avulsa (precisa da comunidade)
@@ -51,6 +63,10 @@ A edição **Pro** da Secretária V4 (`secretariaEdition: "pro"`, marcador) usa 
 Langfuse v3 exige S3 blob storage na ingestion. O one-click sobe sem MinIO e com `LANGFUSE_S3_*` vazias → `POST /ingestion` dá HTTP 500 e os traces nunca chegam; o `GET /projects` (só Postgres) retorna 200 e mascara. **Use `deploy/langfuse/docker-compose.coolify.yml`** (com MinIO) e valide com `scripts/langfuse-verify.py ingestion` (espere 207, não 500). Detalhe em `references/05-langfuse.md`.
 
 ## Config da v4 (pós-import)
+
+### MCP/SUPER_ADMIN: mire o tenant com o argumento `tenant`, não crie um tenant
+
+O token MCP do admin do `/setup` é **fleet-level** (`whoami` → `tenantId: null`): ele não tem tenant embutido. Toda tool per-tenant (agent_import, vault, deployment_connect, …) exige o argumento **`tenant`** (slug ou id de `tenant_list`). O erro clássico: a tool reclama *"fleet-level … pass `tenant`"*/*"no tenant target"* e o agente conclui que **falta um tenant** e chama `tenant_create` → cria um tenant **órfão**, e o import cai no lugar errado. Há **um** tenant (o do `/setup`); rode `tenant_list` e passe o `tenant`. Detalhe em `references/06-setup-and-mcp.md`.
 
 ### Embedding é por-tenant (senão os docs vão pra FAILED)
 
@@ -77,6 +93,12 @@ Mintar a API key da v4 com `{ "name": ... }` → 422. O campo é `displayName`. 
 ### vault POST usa `baseUrl` (camelCase)
 
 `POST /v1/vault` espera `baseUrl` (camelCase); mandar `baseURL` faz a entrada nascer sem base URL e o wiring do Langfuse falha ("requires a base URL"). Atenção: o endpoint `PUT /v1/tenant-settings/embedding` usa a forma `baseURL` (maiúsculo), os dois diferem.
+
+## Ambiente do agente (CLI / box)
+
+### Box bun-only: não chame `node`
+
+A máquina do operador pode ter **só `bun`** (sem `node` no PATH) — `node helper.js` dá `CommandNotFoundException`. Não escreva helpers Node ad-hoc e não invoque `node`: rode os scripts com **`bun`** (e prefira os helpers vendorados da skill, `scripts/*.py`/`*.ts`, em vez de improvisar). As ops do hub saem pelo proxy `bunx @fazer-ai/secretaria hub …`, não por um helper Node escrito na hora.
 
 ## Pendências conhecidas (não bloqueiam o core)
 

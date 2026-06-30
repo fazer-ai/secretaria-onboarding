@@ -13,6 +13,14 @@
 - O access token da v4 fica no store de MCP do harness, não conosco (`guardrails.md`).
 - Se o MCP não aparecer na sessão, reinicie o harness.
 
+## Alvo de tenant nas MCP tools (SUPER_ADMIN)
+
+O admin do `/setup` é **SUPER_ADMIN** (`tenant_id` NULL), então o token MCP é **fleet-level**: `whoami` mostra `tenantId: null`. Ele **não** carrega um tenant embutido — você escolhe o tenant **por chamada**:
+
+1. Logo após conectar, rode **`tenant_list`**: há **um** tenant (o criado pelo `/setup`, a partir do `companyName`). Anote o **slug** (ou o id).
+2. Em **toda tool per-tenant** (`agent_import`, `agent_*`, `vault_*`/`credential_create`, `tenant_settings_*`, `deployment_connect`/`inbox_bind`, `knowledge_*`, …) passe o argumento **`tenant`** com esse slug (ou id). O campo só aparece para tokens SUPER_ADMIN; para um token de tenant (API key) ele nem existe e o tenant é implícito.
+3. **NUNCA chame `tenant_create`.** O tenant já existe (o do `/setup`); criar outro gera um tenant **órfão**, e o agente/credenciais importados cairiam no lugar errado. Se uma per-tenant tool reclamar de *"fleet-level … pass `tenant`"* ou *"no tenant target"*, a causa é **faltar o argumento `tenant`**, não faltar um tenant — rode `tenant_list` e passe o `tenant`.
+
 ## Chave de API (fallback transitório)
 
 - Algumas chamadas REST diretas (TENANT_ADMIN) usam uma API key (`Authorization: Bearer <v4-api-key>`); as duas de deployment (SUPER_ADMIN) usam cookie de sessão + header `x-tenant-id`.

@@ -46,6 +46,10 @@ Um `docker pull` de imagem grande (Chatwoot Pro) passa de 3 min e o harness mata
 
 Não monte one-liners de console (Rails runner do Chatwoot, `artisan tinker`/PsySH) à mão por `ssh … "docker exec … --execute='App\Models\User…'"` **dentro do PowerShell**: o `\` de namespace e as aspas são mangled (PHP `T_NS_SEPARATOR` parse error; echo do PsySH polui o stdout). Use o helper que **é dono do payload** e o passa base64 (como o `scripts/coolify.py` já faz pro psql) — sem quoting manual atravessando PowerShell→SSH.
 
+### `docker ps --format '{{…}}'` à mão quebra no PowerShell→SSH
+
+O agente improvisa `ssh … "docker ps --format '{{.Names}}\t{{.Status}}'"` pra ver o que subiu, mas no PowerShell→SSH o `{{…}}` e o `\t` são mangled (vira comando quebrado e você lê "nada rodando" num host que TEM containers). Use o helper que é dono do payload: `scripts/docker-status.py --ssh root@<HOST>` (ou `--project <uuid>` p/ um service do Coolify, `--all` p/ incluir parados) — roda o ssh por argv direto (chaves intactas) e devolve JSON normalizado.
+
 ## Edições (imagens Free/Pro)
 
 ### Secretária Pro ≠ licença Chatwoot avulsa (precisa da comunidade)

@@ -12,14 +12,14 @@ O template one-click declara os `LANGFUSE_S3_*` mas sobe **sem MinIO e com creds
 
 Padrão oficial de headless-init do Langfuse, **validado empiricamente** (stack local com o compose deste template: o `LANGFUSE_INIT_USER` vira **OWNER** da org, o signup fica fechado desde o boot, o user semeado loga com `role:OWNER`, e as keys ingerem `207`). **Não deixe o signup aberto**: o Langfuse **não tem** o gate "primeiro-admin-depois-fecha" do Coolify/v4 (`AUTH_DISABLE_SIGNUP=true` devolve `422` sempre, sem exceção pro 1º usuário), então signup aberto seria uma janela real pra qualquer um se cadastrar na instância exposta. Semeie tudo de uma vez:
 
-1. **Gere os valores do seed.** Um par de keys `pk-lf-…`/`sk-lf-…`, um id de org e um de projeto (strings únicas), e uma **senha forte pro usuário com um símbolo** (a política do Langfuse exige um caractere não-alfanumérico em signup/troca; o seed e o login aceitam sem, mas gere com pra robustez). O **e-mail é o do operador** (você já tem do onboarding).
+1. **Gere os valores do seed.** Um par de keys `pk-lf-…`/`sk-lf-…`, um id de org e um de projeto (strings únicas), e uma **senha temporária forte com um símbolo** pro login do operador (a política do Langfuse exige um caractere não-alfanumérico em signup/troca; o seed e o login aceitam sem, mas gere com). O **e-mail é o do operador**: reuse o **mesmo do admin do Chatwoot** (etapa 3, você já tem), pra ele ter um login só entre as ferramentas.
 2. **Semeie TUDO num deploy só** (o signup já nasce fechado: `AUTH_DISABLE_SIGNUP=true` é o default do template). Set na env do serviço (Coolify) ou no `.env` (genérico) e **deploy uma vez**:
    - `LANGFUSE_INIT_USER_EMAIL` (operador), `LANGFUSE_INIT_USER_NAME`, `LANGFUSE_INIT_USER_PASSWORD` (a senha gerada)
    - `LANGFUSE_INIT_ORG_ID`, `LANGFUSE_INIT_ORG_NAME`
    - `LANGFUSE_INIT_PROJECT_ID`, `LANGFUSE_INIT_PROJECT_NAME`, `LANGFUSE_INIT_PROJECT_PUBLIC_KEY` (`pk-lf-…`), `LANGFUSE_INIT_PROJECT_SECRET_KEY` (`sk-lf-…`)
 
    No boot o Langfuse cria o **usuário (OWNER da org) + org + projeto + keys**. O USER exige a ORG (por isso vão juntos); upsert **por id**, então re-deploy não duplica.
-3. **Entregue o login ao operador.** A URL do Langfuse em **`/auth/sign-in`** (login, **não** signup), com o **e-mail dele + a senha gerada**; peça pra ele **trocar a senha** no 1º acesso. Ele nunca abre "Settings → API Keys" nem copia key nenhuma.
+3. **Entregue o login e mostre a senha temporária.** A URL do Langfuse em **`/auth/sign-in`** (login, **não** signup), o **e-mail dele + a senha gerada** (mostre a senha, é o único jeito de ele entrar), e peça pra **trocar no 1º acesso** pela UI. O seed é **create-if-not-exists** (validado: a troca de senha do operador **sobrevive** a redeploys, o `LANGFUSE_INIT_USER_PASSWORD` fica inerte), então a senha definitiva é a dele e nunca passou por você. Ele nunca abre "Settings → API Keys" nem copia key nenhuma.
 
 Como **você gerou** as keys no passo 1, elas já estão na sua mão pra ligar na v4 (abaixo). Um deploy, sem redeploy, sem ler `org_id` no Postgres, e o signup **nunca** ficou aberto.
 

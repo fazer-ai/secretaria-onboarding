@@ -82,7 +82,8 @@ The agent does **not** ask the user to copy keys out of the UI, and does **not**
 provisions everything on the first boot (Langfuse's own recommended headless-init pattern):
 
 1. The agent generates a `pk-lf-…` / `sk-lf-…` key pair, an org id + name, a project id + name, and a
-   strong password for the user (include a non-alphanumeric char). The user email is the operator's.
+   strong temporary password (include a non-alphanumeric char). The user email is the operator's, reused
+   from the Chatwoot admin so they have one login across tools.
 2. The agent sets, on the service env (Coolify) or `.env` (generic), and deploys **once** with
    `AUTH_DISABLE_SIGNUP=true` (the template default):
    - `LANGFUSE_INIT_USER_EMAIL` / `_NAME` / `_PASSWORD`
@@ -91,8 +92,10 @@ provisions everything on the first boot (Langfuse's own recommended headless-ini
 
    On boot Langfuse creates the **user (org OWNER) + org + project + keys**. The user requires the org
    (seed them together); it upserts by id, so a redeploy never duplicates.
-3. The operator **signs in** at `/auth/sign-in` (never signs up) with the seeded email + password and
-   changes it. The agent already holds the keys and wires them into Secretária V4 (below).
+3. The operator **signs in** at `/auth/sign-in` (never signs up) with the seeded email + the generated
+   password (the agent shows it) and changes it on first login. The seed is create-if-not-exists
+   (verified: the password change survives redeploys), so the operator's real password never passes
+   through the agent. The agent already holds the keys and wires them into Secretária V4 (below).
 
 Empirically validated with this template's compose: the `LANGFUSE_INIT_USER` becomes org `OWNER`, the
 seeded user signs in (session shows `role: OWNER`), the seeded keys authenticate ingestion (`207`), and

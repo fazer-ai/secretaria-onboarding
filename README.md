@@ -19,7 +19,7 @@ São skills **executadas pelo agente**. Funcionam em **Claude Code**, **Codex** 
 ## Instalação
 
 Para onboarding, normalmente você **não** roda os comandos à mão: o instalador
-`npx @fazer-ai/secretaria` detecta o seu agente e faz tudo (login, MCPs, licença, skill e
+`npx @fazer-ai/secretaria@latest` detecta o seu agente e faz tudo (login, MCPs, licença, skill e
 handoff). Veja [app.fazer.ai](https://app.fazer.ai). Para instalar manualmente:
 
 ### Claude Code / Codex

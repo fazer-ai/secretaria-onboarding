@@ -1,8 +1,8 @@
 # 01: VPS + DNS + SSH
 
-## VPS — qual VPS é escolha do usuário (pergunte, não escolha)
+## VPS: qual VPS é escolha do usuário (pergunte, não escolha)
 
-O **`<VPS_IP>` vem do usuário**, nunca de um chute. Se ele não disse qual e o MCP lista mais de uma VM na conta (`VPS_getVirtualMachinesV1`), **apresente as opções (id, IP, hostname, plano) e pergunte qual usar** — ter o MCP conectado não autoriza escolher por ele. Confirmada a VPS, **nunca toque em outra** da conta (ver `guardrails.md`). O orquestrador (Coolify, Portainer, outro painel, ou nenhum) já está instalado (brownfield) ou será instalado no deploy do tier (escolhido em 1c).
+O **`<VPS_IP>` vem do usuário**, nunca de um chute. Se ele não disse qual e o MCP lista mais de uma VM na conta (`VPS_getVirtualMachinesV1`), **apresente as opções (id, IP, hostname, plano) e pergunte qual usar**: ter o MCP conectado não autoriza escolher por ele. Confirmada a VPS, **nunca toque em outra** da conta (ver `guardrails.md`). O orquestrador (Coolify, Portainer, outro painel, ou nenhum) já está instalado (brownfield) ou será instalado no deploy do tier (escolhido em 1c).
 
 ## SSH: sondar o acesso antes de gerar chave
 
@@ -32,14 +32,14 @@ python3 scripts/sshkey.py wait-access --ssh root@<VPS_IP> --ssh-opts "-i ~/.ssh/
 ssh -o IdentitiesOnly=yes -o IdentityAgent=none -o ConnectTimeout=12 -o BatchMode=yes \
     -o StrictHostKeyChecking=accept-new -i ~/.ssh/<sua-chave> root@<VPS_IP>
 ```
-Bash com rede → `dangerouslyDisableSandbox: true`. Scripts/SQL longos: base64 local → pipe → `base64 -d` no destino. **Windows:** passe o caminho da chave no `--ssh-opts` (helpers preservam as barras `\`); todo helper que fala SSH aceita `--ssh-opts "-i <caminho>"`.
+Bash com rede → `dangerouslyDisableSandbox: true`. Um comando de **uma linha sem** `"`/`$()`/`{{…}}`/`(` pode ir inline; qualquer **script não-trivial** (multi-linha, com aspas/`$()`/`{{…}}`/heredoc) vai por arquivo `.sh` + `scripts/remote.py`, nunca inline no `ssh <host> '…'` nem por here-string no PowerShell (aspas comidas + BOM; ver `gotchas.md`). **Windows:** passe o caminho da chave no `--ssh-opts` (helpers preservam as barras `\`); todo helper que fala SSH aceita `--ssh-opts "-i <caminho>"`.
 
 ### Nota MCP: cadastre a chave pelo painel, não pela API
 A API de chaves não serve aqui: `attach`/`create` registram a chave mas não a injetam numa VM em execução (só aplicam em provisionamento/`recreate`, que apaga dados). Por isso a skill cadastra a chave **pelo painel da VPS** e confirma o acesso **por sondagem** (passo 3).
 
 ## DNS (MCP Hostinger, domínio `<seu-dominio>`)
 
-O **domínio raiz (`<seu-dominio>`) é escolha do usuário**: liste os domínios da conta (`domains_getDomainListV1`) e **pergunte qual usar como raiz** — nunca assuma um porque "estava na conta". Definido o raiz, crie os A-records apontando pra `<VPS_IP>` (os três da app são o contrato; ver 1c):
+O **domínio raiz (`<seu-dominio>`) é escolha do usuário**: liste os domínios da conta (`domains_getDomainListV1`) e **pergunte qual usar como raiz**: nunca assuma um porque "estava na conta". Definido o raiz, crie os A-records apontando pra `<VPS_IP>` (os três da app são o contrato; ver 1c):
 - `agentes.<seu-dominio>`: Secretária V4
 - `chatwoot.<seu-dominio>`: Chatwoot (Pro ou OSS)
 - `langfuse.<seu-dominio>`: Langfuse (recomendado)

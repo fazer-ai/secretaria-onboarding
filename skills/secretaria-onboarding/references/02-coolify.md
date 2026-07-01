@@ -4,21 +4,21 @@
 
 A VPS pode já vir com Coolify (brownfield). Nesse caso, reaproveite o existente: **nunca** destrua dados do usuário. O inventário brownfield completo (todos os serviços, com a matriz reusar/instalar/sinalizar) está na etapa 1b (`references/01b-brownfield.md`); aqui é só a parte do Coolify.
 
-### Reinstalação limpa: só num recurso descartável
+### Greenfield: instalar o Coolify se a VPS vier sem ele
 
-Para um teste do zero, reinstale: wipe do Docker + `/data/coolify` + instalador oficial do Coolify. **Só faça isso numa VPS confirmada como descartável** (`guardrails.md`); é destrutivo. Resultado esperado: instalador sai `0`, "Your instance is ready to use!", 4 containers core Up+healthy (`coolify`, `coolify-db`, `coolify-redis`, `coolify-realtime`).
+VPS nova sem Coolify → instale com o instalador oficial. Resultado esperado: instalador sai `0`, "Your instance is ready to use!", 4 containers core Up+healthy (`coolify`, `coolify-db`, `coolify-redis`, `coolify-realtime`). Em brownfield (Coolify já presente e saudável) **reaproveite** (etapa 1b); nunca reinstale por cima de dados do usuário.
 
 ## 1º admin (o ÚNICO passo do usuário no Tier A)
 
-Real: **o usuário cria** o 1º admin pelo browser em `http://<VPS_IP>:8000` (gate de conta). Teste: você cria. **Esse é o único passo manual do Tier A.** Depois do admin, **NÃO peça mais nada ao usuário** — o token e o Instance Domain você faz por SSH (abaixo). **Nunca** mande o usuário abrir "Settings → …".
+O **usuário cria** o 1º admin pelo browser em `http://<VPS_IP>:8000` (gate de conta): **esse é o único passo manual do Tier A**; você entrega o link e **espera** (`wait-admin`), nunca cria por conta própria. Depois do admin, **NÃO peça mais nada ao usuário**: o token e o Instance Domain você faz por SSH (abaixo). **Nunca** mande o usuário abrir "Settings → …".
 
 Em vez de pedir "responda quando criar", **aguarde** o admin aparecer (poll no banco via psql, não trava o operador):
 ```sh
 python3 scripts/coolify.py wait-admin --ssh root@<VPS_IP>
 ```
-`ok:true` (com `users>0`) → siga pro token. `ok:false` (timeout) → aí pergunte ao operador. Brownfield: se já existe admin, detecta na 1ª tentativa e segue. (O detector é psql, não Tinker — não dá o falso "sem admin" que o Tinker dava ao ecoar o payload.)
+`ok:true` (com `users>0`) → siga pro token. `ok:false` (timeout) → aí pergunte ao operador. Brownfield: se já existe admin, detecta na 1ª tentativa e segue. (O detector é psql, não Tinker: não dá o falso "sem admin" que o Tinker dava ao ecoar o payload.)
 
-## API Access (token) — você faz por SSH, não pela UI
+## API Access (token): você faz por SSH, não pela UI
 
 Dois passos, ambos por SSH, **sem o usuário**. Os dois (e toda chamada à API daqui pra frente) saem do `scripts/coolify.py` (Python stdlib, embutido nesta skill): ele base64-pipa o payload por SSH, semeia o `currentTeam`, e **mantém o token Sanctum `<id>|<token>` fora de qualquer shell** (o `|` só vive num arquivo `0600` e no header HTTP). Foi um `|` num comando montado à mão que já derrubou uma run. Rode via Bash com sandbox desligado, como todo ssh/curl (ver `00`).
 
@@ -36,20 +36,28 @@ Daí toda chamada autenticada lê o token do arquivo, você **nunca** digita o t
 ```sh
 python3 scripts/coolify.py api-get --base-url http://<VPS_IP>:8000 --token-file coolify.token --path /servers   # → 200
 ```
-`create-service` (deploy de serviço), `api-post` (qualquer POST autenticado) e `set-fqdn` usam o mesmo `--token-file`. O arquivo é transitório (scratchpad); **nunca** em repo/log/commit. **Windows/PowerShell:** no `api-post`, prefira `--json-file` a `--json-stdin` — o pipe do PowerShell manda o stdin em UTF-16 e quebra o JSON (o helper agora tolera BOM/UTF-16, mas `--json-file` é determinístico).
+`create-service` (deploy de serviço), `api-post` (qualquer POST autenticado) e `set-fqdn` usam o mesmo `--token-file`. O arquivo é transitório (scratchpad); **nunca** em repo/log/commit. **Windows/PowerShell:** no `api-post`, prefira `--json-file` a `--json-stdin`: o pipe do PowerShell manda o stdin em UTF-16 e quebra o JSON (o helper tolera BOM/UTF-16 como rede de segurança, mas `--json-file` é determinístico).
 
-## Instance Domain — você seta por SSH (cosmético: NÃO bloqueia o deploy)
+## Instance Domain: você seta por SSH (faça ANTES de deployar os serviços)
 
-Só troca o acesso ao **painel** de `http://<VPS_IP>:8000` para `https://coolify.<seu-dominio>` (TLS). **O deploy não depende disto** (API e serviços rodam pelo IP cru), então é polimento: faça por SSH, sem o usuário, e **não trave** o onboarding se falhar. Exige o A-record `coolify.` (etapa 1):
+Troca o acesso ao **painel** de `http://<VPS_IP>:8000` para `https://coolify.<seu-dominio>` (TLS). O deploy dos serviços não depende disto (rodam pelo IP cru), mas **faça**: é parte do contrato do painel, não item descartável. Duas regras de ordem/confiabilidade que já queimaram runs:
+
+1. **Faça ANTES de deployar os serviços.** O passo termina com `docker restart coolify`, que **zera a fila de deploy** do Coolify (`gotchas.md`: "o `start` da API pode não materializar"). Reiniciar o `coolify` no meio do deploy faz os serviços não subirem. Ordem: token → **Instance Domain** → deploy dos serviços.
+2. **NÃO monte o psql + restart inline no `ssh <host> '…'`**: o `UPDATE …` com aspas e o `; docker restart` quebram no PowerShell (aspas comidas, `\`/BOM; é exatamente onde uma run real falhou e o agente desistiu chamando de "cosmético"). Escreva um `.sh` e rode pelo `remote.py` (entrega byte-exato):
+
+`set-instance-domain.sh`:
 ```sh
-docker exec coolify-db psql -U coolify -d coolify -tc "UPDATE instance_settings SET fqdn='https://coolify.<seu-dominio>';"
+docker exec -i coolify-db psql -U coolify -d coolify -c "UPDATE instance_settings SET fqdn='https://coolify.<seu-dominio>';"
 docker restart coolify
 ```
-O `UPDATE` **sozinho não regenera** o proxy; é o **`restart coolify`** (o app, **NÃO** `coolify-proxy`) que reescreve a rota do painel. Derruba painel+API ~30-40s (o token já gerado **sobrevive**; faça este passo logo após o token ou por último, nunca no meio de uma chamada à API). Depois **valide**:
+```sh
+python3 scripts/remote.py --ssh root@<VPS_IP> --ssh-opts "-i <chave>" --script-file set-instance-domain.sh
+```
+O `UPDATE` **sozinho não regenera** o proxy; é o **`restart coolify`** (o app, **NÃO** `coolify-proxy`) que reescreve a rota do painel. Derruba painel+API ~30-40s (o token já gerado **sobrevive**). Exige o A-record `coolify.` (etapa 1). Depois **valide**:
 ```sh
 curl -so /dev/null -w "%{http_code} ssl=%{ssl_verify_result}\n" https://coolify.<seu-dominio>
 ```
-→ `200`/`302` com `ssl=0` (cert válido; o ACME emite quando o A-record resolve).
+→ `200`/`302` com `ssl=0` (cert válido; o ACME emite quando o A-record resolve). Só siga sem o domínio se ele **falhar de verdade** após este caminho (não como atalho).
 
 ## DB do Coolify (acesso direto; ver gotchas)
 

@@ -16,7 +16,7 @@ A edição é decidida **no deploy** pelo marcador do CLI `~/.fazer-ai/onboardin
 - **`chatwootTier: "community"`** (ou, sem marcador, sem licença) → deploy da imagem **OSS** (sem Kanban) e segue; nada a fazer aqui.
 
 > **Sem licença e o usuário quer Kanban?** Sugira virar membro Pro da comunidade do Lucas Moreira
-> ([lucasmoreira.ai](https://lucasmoreira.ai)) — ganha licença grátis do Kanban (1 conta no plano mensal,
+> ([lucasmoreira.ai](https://lucasmoreira.ai)): ganha licença grátis do Kanban (1 conta no plano mensal,
 > 2 ilimitadas no anual). Depois é só rodar o CLI de novo e escolher "já me tornei membro" pra a nova
 > licença aparecer; ou seguir em OSS.
 
@@ -50,6 +50,10 @@ A edição é decidida **no deploy** pelo marcador do CLI `~/.fazer-ai/onboardin
 
 ## Erros comuns
 
+- **`hub …` diz que "o hub não respondeu ao refresh da sessão" / instabilidade:** é **transitório** (a
+  sessão segue válida; o refresh token nem foi consumido): **rode o MESMO comando de novo** em instantes.
+  Só **"sessão expirada/ausente"** (erro de auth real) pede re-rodar o CLI de onboarding pra logar no
+  browser. Em nenhum dos casos contorne o `hub` indo por REST/MCP por fora: ou re-tenta, ou re-loga.
 - **Kanban não aparece com imagem Pro:** faltou o passo 3. A imagem traz o código; a assinatura libera em
   runtime. Rode o Refresh.
 - **`FRONTEND_URL` vazio:** o controller do Refresh recusa, e o `installation_host` enviado ao hub fica

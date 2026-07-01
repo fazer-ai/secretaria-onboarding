@@ -34,4 +34,4 @@ Ver `guardrails.md` (Pro privado, segredos fora do repo, `bun check` verde) e `g
 
 - Confirmar o **nome client-facing** e a URL definitiva do repo Free (hoje provisório: `fazer-ai/secretaria-ia`).
 - **Caminho Pro depende do hub:** o git proxy do código-fonte (`fazer-ai/secretaria-v4`) ainda será exposto; até lá, o clone Pro de `references/00-get-the-code.md` é o contrato assumido.
-- **Alerta de não-redistribuição no repo Pro:** montar **antes de gerar os repos separados Free/Full** (lembrete em `todo.md` na raiz; wording a aprovar por ser conteúdo público).
+- **Alerta de não-redistribuição no repo Pro:** montar **antes de gerar os repos separados Free/Full** (wording a aprovar por ser conteúdo público).

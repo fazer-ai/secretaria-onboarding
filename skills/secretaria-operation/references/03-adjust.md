@@ -7,7 +7,7 @@ Achada a causa, ajuste na camada que a explica. Via **console** (editor do agent
 | Sintoma | Camada | Onde | Tool MCP |
 | --- | --- | --- | --- |
 | Tom/conteúdo/decisão da resposta | **Prompt/instruções** | editor → General | `prompt_set` |
-| Modelo errado/caro/lento, temperatura | **Modelo** | editor → Model (`modelConfig`) | `agent_update` |
+| Modelo errado/caro/lento, temperatura | **Modelo** | editor → General (seção Model, `modelConfig`) | `agent_update` |
 | Usou/não usou a tool certa | **Grants de ferramentas** | editor → Tools | `agent_tools_set` |
 | Resposta sem fundamento na base | **Grounding/KB** | editor → Knowledge | `agent_tools_set` (grant RAG), `knowledge_*` |
 | Cadência/áudio/janela/agrupamento | **Behavior** | editor → Behavior | `agent_settings_set` |
@@ -29,7 +29,7 @@ O editor (`Tools` + `Knowledge`) edita **um** working set de grants e faz **PUT 
 - **tts** — responde em áudio: `mode` `never`|`mirror`|`preference` (default `never`).
 - **split** — quebra a resposta em balões com "digitando" (off por padrão; só texto).
 - **serviceWindow** — janela de 24h do WhatsApp para envios **proativos**: dentro = livre, fora = template HSM ou nota (on por padrão). Não afeta a resposta reativa.
-- **grounding** — config de fundamentação na KB.
+- **grounding** — limiar de distância (`maxDistance`) da busca na KB (distinto do grant RAG da aba Knowledge).
 
 ## Credenciais
 

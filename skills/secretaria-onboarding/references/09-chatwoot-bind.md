@@ -34,6 +34,6 @@ inbox_bind { "inbox_id":"<id do inbox na v4>", "agent_id":"<id do agente>" }   /
 
 O bind **provisiona/conecta o bot do agente no Chatwoot** (Agent Bot + webhook `/v1/chatwoot/webhook/:routeToken`); o `routeTokenHash`/`inboundSecretRef` ficam encriptados na v4 e **nunca** saem no export. Não precisa setar `webhook_url` à mão. Verifique: bot-status do inbox = `active`.
 
-## Equivalente REST (o que a tela `/channels` chama por baixo)
+## Só MCP (nada de REST à mão)
 
-`POST /v1/chatwoot/deployment {baseUrl, adminToken}` (SUPER_ADMIN: cookie + `x-tenant-id`) → `PUT /v1/chatwoot/deployment/accounts {accountIds:[1]}` → `PATCH /v1/chatwoot/inboxes/:id {agentId}` (TENANT_ADMIN). Útil como fallback ou pra depurar.
+A v4 expõe endpoints REST equivalentes por baixo (o que a tela `/channels` chama), mas **não os chame à mão**: as tools MCP `deployment_connect`/`inbox_bind` são o único caminho (regra MCP-only, ver `SKILL.md` e `06-setup-and-mcp.md`).

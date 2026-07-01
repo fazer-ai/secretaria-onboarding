@@ -12,6 +12,7 @@ O alvo **é** produção. A postura é o inverso do onboarding (onde nada toca p
 
 - Autorização a um **objetivo** ("conserta esse comportamento") não autoriza o **método** nem aplicar sozinho. Proponha o ajuste exato (qual campo, valor antigo → novo), mostre o diff, espere o aval.
 - Aprovação de uma mudança não se estende à próxima.
+- **Infra: reiniciar/redeployar/rebuildar serviços** (v4, Chatwoot, Langfuse, orquestrador), rodar **migrations**, ou mudar env/config viva. É mutação de produção, não diagnóstico: pode derrubar estado em voo (um restart do Coolify zera a fila de deploy) e um `migrate` pode ser destrutivo/irreversível. Proponha e espere o OK; nunca como atalho no meio de uma investigação.
 
 ## Nunca
 

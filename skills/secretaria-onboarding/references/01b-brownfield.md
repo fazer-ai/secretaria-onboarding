@@ -4,10 +4,10 @@ A VPS pode chegar vazia (**greenfield**) ou já com Coolify e/ou Chatwoot e/ou L
 
 ## 1. Sondagem (read-only, não muta nada)
 
-Rode na VPS via SSH (etapa 0). Tudo aqui é leitura (`docker ps/inspect`, `ss`, `curl`, `df/free`):
+Rode na VPS via SSH (etapa 0). Tudo aqui é leitura (`docker ps/inspect`, `ss`, `curl`, `df/free`). O probe tem `{{…}}`, `$()`, aspas aninhadas e múltiplas linhas: **não monte isso inline no `ssh <host> '…'`** (no PowerShell as aspas são comidas e a here-string ganha BOM → o bash quebra; ver `gotchas.md`). **Escreva o probe num arquivo `recon.sh`** e rode pelo `scripts/remote.py`, que entrega byte a byte em qualquer SO:
 
+`recon.sh`:
 ```sh
-ssh ... root@<VPS_IP> 'bash -s' <<'PROBE'
 sec(){ printf '\n### %s\n' "$1"; }
 sec OS;        ( . /etc/os-release && echo "$PRETTY_NAME" )
 sec RESOURCES; free -h | awk 'NR==2{print "mem "$2"/"$7" avail"}'; df -h / | awk 'NR==2{print "disk "$2"/"$4" free"}'; echo "cpu $(nproc)"
@@ -16,10 +16,13 @@ sec CONTAINERS; docker ps -a --format '{{.Names}}	{{.Image}}	{{.Status}}	[{{.Lab
 sec PORTS;     ss -tlnp | awk 'NR>1{n=split($4,a,":");print a[n]}' | sort -un | tr '\n' ' '; echo
 sec COOLIFY;   curl -s -m5 -o /dev/null -w 'api8000=%{http_code}\n' http://localhost:8000/api/health
 sec IMAGES;    docker ps -a --format '{{.Image}}' | sort -u | grep -iE 'coolify|chatwoot|langfuse|secretaria|pgvector|clickhouse|minio|traefik|caddy|nginx'
-PROBE
 ```
 
-> **Tier B (Portainer):** quando a plataforma é Portainer, a sondagem é **via API do Portainer** (`GET /api/stacks`, `GET /api/endpoints/{id}/docker/containers/json`), não `coolify-db`. A lógica é a mesma (fingerprint por imagem + matriz da seção 3); use `scripts/portainer-brownfield.py` (já detecta quem ocupa 80/443 → se há ingress, o Caddy bundled conflita, reusar ou ir de `docker-compose.prod.yml` BYO-proxy). Ver [`deploy-b-portainer.md`](deploy-b-portainer.md).
+```sh
+python3 scripts/remote.py --ssh root@<VPS_IP> --ssh-opts "-i <chave>" --script-file recon.sh
+```
+
+> **Tier B (Portainer):** quando a plataforma é Portainer, a sondagem é **via API do Portainer** (`GET /api/stacks`, `GET /api/endpoints/{id}/docker/containers/json`), não `coolify-db`. A lógica é a mesma (fingerprint por imagem + matriz da seção 3); use `scripts/portainer-brownfield.py` (já detecta quem ocupa 80/443 → se há ingress, o Caddy bundled conflita, reusar ou ir de `templates/docker-compose.prod.yml` BYO-proxy). Ver [`deploy-b-portainer.md`](deploy-b-portainer.md).
 
 ## 2. Ler os sinais
 
@@ -45,7 +48,7 @@ Greenfield = tudo ausente = instala tudo. O resultado é um inventário por serv
 
 ## 4. Compatibilidade (o que torna "presente" em "incompatível")
 
-- **Chatwoot OSS vs Pro:** a imagem revela. `harbor.fazer.ai/chatwoot/fazer-ai/chatwoot-pro` = **Pro** (Kanban + features fazer-ai). `ghcr.io/fazer-ai/chatwoot` (nosso fork OSS) — ou o `chatwoot/chatwoot` oficial do Docker Hub, num brownfield de terceiro — = **OSS**: o core do agente funciona (Agent Bot é padrão), mas **sem** Kanban/features Pro. Se o usuário quer essas features, sinalize a migração pra Pro.
+- **Chatwoot OSS vs Pro:** a imagem revela. `harbor.fazer.ai/chatwoot/fazer-ai/chatwoot-pro` = **Pro** (Kanban + features fazer-ai). `ghcr.io/fazer-ai/chatwoot` (nosso fork OSS), ou o `chatwoot/chatwoot` oficial do Docker Hub num brownfield de terceiro, = **OSS**: o core do agente funciona (Agent Bot é padrão), mas **sem** Kanban/features Pro. Se o usuário quer essas features, sinalize a migração pra Pro.
 - **Langfuse v3 vs v2:** a v4 fala com a v3 (arquitetura `clickhouse` + **`minio` obrigatório**, ver `references/05-langfuse.md`). Tag `:2`, ou ausência de `clickhouse`/`minio`, → incompatível/parcial: sinalize.
 - **Coolify:** validado em `4.x`. Versões muito antigas têm API diferente; confirme `:8000/api/health`=200 e cheque a versão pela tag.
 - **Postgres reusado (fora do Coolify, Tier B/C):** a v4 exige **pgvector** (extensão `vector`) e um **superuser** pro bootstrap das 2 roles (ver `references/04-secretaria-v4.md`). Um Postgres compartilhado sem pgvector ou sem acesso superuser → sinalize.

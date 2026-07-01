@@ -23,8 +23,7 @@ Valem em qualquer execução desta skill. Cruzar qualquer uma é **parar e pergu
 
 ## Gates de criação de conta
 
-- **Padrão (onboarding de um usuário real):** o **usuário** cria o 1º admin de cada ferramenta no browser (Coolify, Chatwoot, v4 `/setup`). O agente só entrega o link + a instrução (na v4, a URL `/setup` com o token impresso no boot).
-- **Atalho (operador validando a própria infra):** quem está testando a jornada no próprio ambiente pode criar esses admins de forma headless (CLI/console). Deixe **sempre explícito** que, no onboarding de um usuário real, são eles que criam as contas principais.
+- O **usuário** cria o 1º admin de cada ferramenta no browser (Coolify/Portainer, Chatwoot, Langfuse, v4 `/setup`). O agente **entrega o link + a instrução e espera** o usuário criar; **nunca** cria a conta por conta própria (não há atalho: nada de CLI/console/auto-seed criando o admin). Na v4, a URL `/setup` com o token impresso no boot. Depois da conta criada, o agente segue (obtém o token via Rails runner transitório, deploy, config).
 
 ## Estilo
 

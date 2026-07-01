@@ -20,7 +20,9 @@ x-langfuse-env: &langfuse-env
   NEXTAUTH_URL: '${LANGFUSE_PUBLIC_URL}'
   TELEMETRY_ENABLED: 'false'
   LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: 'false'
-  AUTH_DISABLE_SIGNUP: 'true'
+  # Agent flips this: 'false' for the initial deploy (so the user can self-register in the browser),
+  # then 'true' after the project + keys are seeded, to close signup. Default 'true' (secure) if unset.
+  AUTH_DISABLE_SIGNUP: '${AUTH_DISABLE_SIGNUP:-true}'
   HOSTNAME: 0.0.0.0
   # ── clickhouse ──
   CLICKHOUSE_MIGRATION_URL: 'clickhouse://clickhouse:9000'
@@ -62,22 +64,23 @@ x-langfuse-env: &langfuse-env
   # ── email (optional) ──
   EMAIL_FROM_ADDRESS: '${LANGFUSE_EMAIL_FROM:-admin@example.com}'
   SMTP_CONNECTION_URL: '${LANGFUSE_SMTP_URL:-}'
-  # ── auto-seed org/project/admin on first boot (optional) ──
-  LANGFUSE_INIT_ORG_ID: '${LANGFUSE_INIT_ORG_ID:-my-org}'
-  LANGFUSE_INIT_ORG_NAME: '${LANGFUSE_INIT_ORG_NAME:-My Org}'
-  LANGFUSE_INIT_PROJECT_ID: '${LANGFUSE_INIT_PROJECT_ID:-my-project}'
-  LANGFUSE_INIT_PROJECT_NAME: '${LANGFUSE_INIT_PROJECT_NAME:-My Project}'
-  LANGFUSE_INIT_PROJECT_PUBLIC_KEY: '${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}'
-  LANGFUSE_INIT_PROJECT_SECRET_KEY: '${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}'
-  LANGFUSE_INIT_USER_EMAIL: '${LANGFUSE_INIT_USER_EMAIL:-}'
-  LANGFUSE_INIT_USER_NAME: '${LANGFUSE_INIT_USER_NAME:-}'
-  LANGFUSE_INIT_USER_PASSWORD: '${LANGFUSE_INIT_USER_PASSWORD:-}'
 
 services:
   langfuse:
     image: 'langfuse/langfuse:3'
     environment:
       <<: *langfuse-env
+      # ── headless project seed (agent-driven; empty = no seed) ──
+      # After the user creates their account + organization in the browser, the agent reads the user's
+      # org id and sets ORG_ID here + a project + a generated key pair, then redeploys. Langfuse upserts
+      # by id: the existing org and the user's membership are PRESERVED, and the project + keys are created
+      # under it. The agent then wires those keys into Secretária v4. Empirically validated on langfuse:3.
+      # See references/05-langfuse.md. (User creation stays in the browser, so no LANGFUSE_INIT_USER_*.)
+      LANGFUSE_INIT_ORG_ID: '${LANGFUSE_INIT_ORG_ID:-}'
+      LANGFUSE_INIT_PROJECT_ID: '${LANGFUSE_INIT_PROJECT_ID:-}'
+      LANGFUSE_INIT_PROJECT_NAME: '${LANGFUSE_INIT_PROJECT_NAME:-}'
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: '${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}'
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: '${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}'
     ports:
       # Expose the web UI / ingestion API. Front it with your own TLS-terminating proxy.
       - '${LANGFUSE_PORT:-3000}:3000'

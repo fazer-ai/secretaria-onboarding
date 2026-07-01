@@ -46,12 +46,12 @@ Entregou os 5 → vá direto pra **etapa 6** (a mesma pra todos os tiers).
 
 - **`pgvector/pgvector:pg17`**, nunca Postgres puro: o schema roda `CREATE EXTENSION vector`.
 - **Réplica única** da v4: os workers (scheduler/debounce/outbound) assumem um único líder; não escale o
-  serviço `secretaria-v4` pra >1 (ver o aviso no `docker-compose.prod.yml`).
+  serviço `secretaria-v4` pra >1 (ver o aviso no `templates/docker-compose.prod.yml`).
 - **DNS antes do ACME**: o cert só emite com o A-record já resolvendo pro IP da VPS. Crie os A-records
   (etapa 1) e confirme a resolução **antes** de anexar o domínio no painel / subir o Caddy.
 - **Quem ocupa 80/443**: se já há um proxy/ingress (Traefik do painel, nginx, um Caddy), o Caddy
-  *bundled* do `docker-compose.portainer.yml` **conflita**:
-  reuse o proxy existente com `docker-compose.prod.yml` (BYO-proxy).
+  *bundled* do `templates/docker-compose.portainer.yml` **conflita**:
+  reuse o proxy existente com `templates/docker-compose.prod.yml` (BYO-proxy).
   O 1b já sinaliza quem detém as portas.
 - **Não sobrescreva `command:`** no serviço da v4: o CMD da imagem faz `bootstrap → migrate deploy →
   serve`. Um `command:` próprio quebra o boot.

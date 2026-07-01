@@ -4,23 +4,23 @@ Adapter de deploy **Tier B**. O agente, da máquina do operador, dirige um **Por
 gera os secrets, deploya cada stack a partir de uma string de compose, e sobe um **Caddy bundled** que
 termina TLS com certificado real automático (sem labels Traefik, sem polling do socket). É o companion
 por-plataforma do [contrato (1c)](01c-pick-tier.md); os invariantes (duas roles de DB, pgvector, réplica
-única) valem igual. Para BYO-proxy use `docker-compose.prod.yml`; o Tier B usa o Caddy-bundled
-`docker-compose.portainer.yml`.
+única) valem igual. Para BYO-proxy use `templates/docker-compose.prod.yml`; o Tier B usa o Caddy-bundled
+`templates/docker-compose.portainer.yml`.
 
 ## Artefatos (incluídos nesta skill, relativos à raiz dela)
 
 | Artefato | Papel |
 | --- | --- |
-| `docker-compose.portainer.yml` | v4 + Postgres + **Caddy bundled** (auto-HTTPS). Self-contained (uma string pro Portainer). |
+| `templates/docker-compose.portainer.yml` | v4 + Postgres + **Caddy bundled** (auto-HTTPS). Self-contained (uma string pro Portainer). |
 | `scripts/gen-onboarding-env.ts` | Gera o `.env` (duas roles de DB, JWT/ENCRYPTION, `CADDY_DOMAIN`, `ACME_EMAIL` opcional). |
-| `deploy/chatwoot/` | Stack do Chatwoot, Pro (Harbor) ou OSS (público): um compose genérico, edição por env. Ver [`03-chatwoot-pro.md`](03-chatwoot-pro.md). |
-| `deploy/langfuse/` | Langfuse opcional (tracing); inclui o MinIO que a ingestion v3 exige. Ver [`05-langfuse.md`](05-langfuse.md). |
+| `templates/chatwoot/` | Stack do Chatwoot, Pro (Harbor) ou OSS (público): um compose genérico, edição por env. Ver [`03-chatwoot-pro.md`](03-chatwoot-pro.md). |
+| `templates/langfuse/` | Langfuse opcional (tracing); inclui o MinIO que a ingestion v3 exige. Ver [`05-langfuse.md`](05-langfuse.md). |
 | `scripts/portainer-brownfield.py` | Descoberta brownfield read-only (inventário + decisão por serviço) via a API do Portainer. |
 
 ## Por que self-contained + Caddy bundled
 
 A API "deploy from string" do Portainer recebe **um** documento de compose, então o
-`docker-compose.portainer.yml` repete app + postgres e adiciona um serviço `caddy`. O Caddy monta o
+`templates/docker-compose.portainer.yml` repete app + postgres e adiciona um serviço `caddy`. O Caddy monta o
 Caddyfile a partir do env no boot (`CADDY_DOMAIN` → o app; `PORTAINER_DOMAIN` opcional → o painel via
 `host.docker.internal:9443`) e obtém certs via ACME (tls-alpn-01 / http-01).
 
@@ -34,7 +34,7 @@ Caddyfile a partir do env no boot (`CADDY_DOMAIN` → o app; `PORTAINER_DOMAIN` 
     pelo proxy do CLI (`bunx @fazer-ai/secretaria hub registry-credential --apply --out harbor.secret`; imprime o
     `username`, grava o secret em `harbor.secret`). Chatwoot OSS não precisa de registry privado.
 
-## 1. Instalar o Portainer (headless)
+## 1. Instalar o Portainer
 
 ```sh
 docker volume create portainer_data
@@ -43,28 +43,15 @@ docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always \
   portainer/portainer-ce:lts
 ```
 
-O Portainer 2.39+ protege a API de primeiro-admin atrás de um **setup token impresso nos logs** (e tranca
-a inicialização ~5 min após o start; reinicie o container pra um token novo se perder a janela):
+O Portainer 2.39+ exige criar o primeiro admin numa janela que tranca ~5 min após o start (reinicie o container pra reabrir). O **usuário** cria o 1º admin **no browser** em `https://<ip>:9443` (você entrega o link e **espera**) e, em *User settings → Access tokens*, gera uma **API key** (`<api-key>`) que te passa. Nunca crie o admin por conta própria.
+
+Com a API key (header `X-API-Key`), ache o endpoint id (o ambiente Docker local, geralmente `1`; crie se a lista vier vazia):
 
 ```sh
-STOK=$(docker logs portainer 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g' | grep -oE 'setup_token=[a-f0-9]{64}' | tail -1 | cut -d= -f2)
-curl -sk -X POST https://localhost:9443/api/users/admin/init \
-  -H 'Content-Type: application/json' -H "X-Setup-Token: $STOK" \
-  -d '{"Username":"admin","Password":"<≥12 chars>"}'
+curl -sk https://localhost:9443/api/endpoints -H "X-API-Key: <api-key>"
+# se vazio, crie o endpoint local:
+curl -sk -X POST https://localhost:9443/api/endpoints -H "X-API-Key: <api-key>" -F Name=local -F EndpointCreationType=1
 ```
-
-> No fluxo **real** do produto o operador cria o primeiro admin **no browser** (`https://<ip>:9443`). O
-> `admin/init` headless acima é o atalho de teste/automação.
-
-Depois minte uma API key e ache o endpoint id (o ambiente Docker local, geralmente `1`):
-
-```sh
-JWT=$(curl -sk -X POST https://localhost:9443/api/auth -d '{"Username":"admin","Password":"..."}' | jq -r .jwt)
-# endpoint local (crie se GET /api/endpoints estiver vazio):
-curl -sk -X POST https://localhost:9443/api/endpoints -H "Authorization: Bearer $JWT" -F Name=local -F EndpointCreationType=1
-# X-API-Key de longa duração:
-curl -sk -X POST https://localhost:9443/api/users/1/tokens -H "Authorization: Bearer $JWT" \
-  -d '{"password":"...","description":"onboarding"}' | jq -r .rawAPIKey
 ```
 
 ## 2. Registrar os registries privados (uma vez)
@@ -91,7 +78,7 @@ bun scripts/gen-onboarding-env.ts --public-url https://agentes.<domínio> --acme
 
 curl -sk -X POST "https://localhost:9443/api/stacks/create/standalone/string?endpointId=1" \
   -H "X-API-Key: <api-key>" -H 'Content-Type: application/json' \
-  -d "$(jq -n --arg c "$(cat docker-compose.portainer.yml)" --argjson env "$ENV_JSON" \
+  -d "$(jq -n --arg c "$(cat templates/docker-compose.portainer.yml)" --argjson env "$ENV_JSON" \
         '{Name:"secretaria-v4", StackFileContent:$c, Env:$env, Registries:[<ghcr-id>]}')"
 ```
 
@@ -112,8 +99,8 @@ Um "stack deployed" verde no Portainer não basta: confirme que o issuer do cert
 
 ## 5. Chatwoot + Langfuse
 
-Deploye `deploy/chatwoot/` (Pro vs OSS por edição, ver [`03-chatwoot-pro.md`](03-chatwoot-pro.md)) e, se
-selecionado, `deploy/langfuse/` (ver [`05-langfuse.md`](05-langfuse.md)) do mesmo jeito (stack-create from
+Deploye `templates/chatwoot/` (Pro vs OSS por edição, ver [`03-chatwoot-pro.md`](03-chatwoot-pro.md)) e, se
+selecionado, `templates/langfuse/` (ver [`05-langfuse.md`](05-langfuse.md)) do mesmo jeito (stack-create from
 string + `Env[]` + os `Registries` relevantes). Frontear `chatwoot.<domínio>` / `langfuse.<domínio>` com
 TLS: aponte um site Caddy pra porta publicada de cada um, ou dê a cada um seu stack e deixe o Caddy
 compartilhado fazer o proxy.
@@ -129,7 +116,7 @@ PORTAINER_API_KEY=$KEY PORTAINER_ENDPOINT_ID=1 python3 scripts/portainer-brownfi
 ```
 
 Ele lista os stacks, faz fingerprint de cada container por imagem, sinaliza **quem ocupa 80/443** (um
-ingress existente faz o stack Caddy-bundled conflitar → reuse-o ou troque pro `docker-compose.prod.yml`
+ingress existente faz o stack Caddy-bundled conflitar → reuse-o ou troque pro `templates/docker-compose.prod.yml`
 BYO-proxy) e imprime uma matriz de decisão: `secretaria-v4` saudável → reusa; Chatwoot presente → reusa
 (`chatwoot-pro` Harbor e OSS são ambos válidos); Chatwoot ausente → instala Pro se há assinatura no hub,
 senão OSS; Langfuse ausente → instala só se selecionado.

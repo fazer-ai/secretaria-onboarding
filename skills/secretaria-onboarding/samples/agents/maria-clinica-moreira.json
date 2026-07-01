@@ -101,8 +101,8 @@
       }
     },
     "transferWithSummary": true,
-    "businessHours": "Horário da Clínica Moreira",
-    "followUpHours": null,
+    "businessHours": null,
+    "followUpHours": "Horário da Clínica Moreira",
     "tools": [
       {
         "source": "NATIVE",

@@ -27,7 +27,7 @@ Abra o trace do turno (env `production` ou `production-playground`, **session = 
 
 ## 4. Inspecionar a config do agente
 
-Editor do agente (abas General/Model/Tools/Knowledge/Behavior) ou MCP read: `agent_get`, `agent_settings_get` (blocos `debounce`/`stt`/`tts`/`split`/`serviceWindow`/`grounding`, já normalizados), `agent_tools_get` (grants). Confirme se o comportamento observado bate com a config (ex.: respondeu balão-a-balão → debounce off; não respondeu fora de horário → service-window/business-hours).
+Editor do agente (abas General/Tools/Knowledge/Behavior) ou MCP read: `agent_get`, `agent_settings_get` (blocos `debounce`/`stt`/`tts`/`split`/`serviceWindow`/`grounding`, já normalizados), `agent_tools_get` (grants). Confirme se o comportamento observado bate com a config (ex.: respondeu balão-a-balão → debounce off; não respondeu fora de horário → service-window/business-hours).
 
 ## 5. (Se preciso) estado do checkpointer
 

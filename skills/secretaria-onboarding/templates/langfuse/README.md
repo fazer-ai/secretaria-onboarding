@@ -4,7 +4,7 @@ Optional companion service for **agent tracing**. Langfuse is wired into Secret√
 via a `langfuse` vault credential** (never a global env var); see `docs/deploy.md`
 and `docs/graph.md`. This folder vendors a deploy that actually works, in the
 project's three flavors (Coolify primary; Portainer and a generic "Outros" path, per
-`deploy.md`).
+`docs/deploy.md`).
 
 ## Why this exists (the bug the one-click hides)
 

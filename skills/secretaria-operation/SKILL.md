@@ -20,11 +20,11 @@ Este modo **inverte** o fence do onboarding: lá o alvo é uma VPS de teste e "n
 
 Siga em ordem; cada etapa é uma reference. Leia a da etapa antes de executá-la.
 
-1. [`references/00-production-safety.md`](references/00-production-safety.md) — a postura invertida: read-only livre, toda mutação aprovada item a item, nunca DB direto, dry-run por padrão. **Lê primeiro.**
-2. [`references/01-diagnose.md`](references/01-diagnose.md) — localizar a conversa (`display_id`), ler o `ExecutionLog` (`/logs`), traces no Langfuse, config do agente: isolar **qual estágio** (stt/embed/generate/tts/split/handoff) divergiu.
-3. [`references/02-reproduce.md`](references/02-reproduce.md) — reconstituir o turno no **playground** (modelo real, isolado da conversa real).
-4. [`references/03-adjust.md`](references/03-adjust.md) — corrigir na camada certa: prompt, grants (replace-the-set), behavior, grounding/KB. Console ou MCP (dry-run primeiro).
-5. [`references/04-validate-and-apply.md`](references/04-validate-and-apply.md) — re-validar no playground, conversa de teste controlada (Inbox API) quando fizer sentido, aplicar só com aprovação (audit cobre o write).
+1. [`references/00-production-safety.md`](references/00-production-safety.md): a postura invertida: read-only livre, toda mutação aprovada item a item, nunca DB direto, dry-run por padrão. **Lê primeiro.**
+2. [`references/01-diagnose.md`](references/01-diagnose.md): localizar a conversa (`display_id`), ler o `ExecutionLog` (`/logs`), traces no Langfuse, config do agente: isolar **qual estágio** (stt/embed/generate/tts/split/handoff) divergiu.
+3. [`references/02-reproduce.md`](references/02-reproduce.md): reconstituir o turno no **playground** (modelo real, isolado da conversa real).
+4. [`references/03-adjust.md`](references/03-adjust.md): corrigir na camada certa: prompt, grants (replace-the-set), behavior, grounding/KB. Console ou MCP (dry-run primeiro).
+5. [`references/04-validate-and-apply.md`](references/04-validate-and-apply.md): re-validar no playground, conversa de teste controlada (Inbox API) quando fizer sentido, aplicar só com aprovação (audit cobre o write).
 
 Fronteiras duras em [`guardrails.md`](guardrails.md); armadilhas de diagnóstico em [`gotchas.md`](gotchas.md).
 

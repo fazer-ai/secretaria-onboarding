@@ -1,15 +1,15 @@
 # 01: Layout do repo + porta de qualidade
 
 ## Mapa
-- `src/api/` — backend Elysia (features/, lib/, middlewares/), a camada REST.
-- `src/modules/` — **a lógica de negócio por subsistema** (agents, chatwoot, debounce, rag, stt, tts, vault, mcp, …); cada um casa com uma doc em `docs/`. É onde a maior parte do trabalho de feature acontece.
-- `src/graph/` — o runtime do agente (LangGraph TS): grafo, runtime, checkpointer, tools.
-- `src/lib/` — utilitários compartilhados (tenancy, crypto, etc.).
-- `src/client/` — frontend React (pages/, components/, contexts/, lib/, locales/).
-- `prisma/` — schema e migrations.
-- `docs/` — guia por subsistema (uma doc por subsistema; leia a relevante antes de mexer).
-- `scripts/` — utilitários (`set-admin.ts`, etc.).
-- `public/` — assets e `index.html`.
+- `src/api/`: backend Elysia (features/, lib/, middlewares/), a camada REST.
+- `src/modules/`: **a lógica de negócio por subsistema** (agents, chatwoot, debounce, rag, stt, tts, vault, mcp, …); cada um casa com uma doc em `docs/`. É onde a maior parte do trabalho de feature acontece.
+- `src/graph/`: o runtime do agente (LangGraph TS): grafo, runtime, checkpointer, tools.
+- `src/lib/`: utilitários compartilhados (tenancy, crypto, etc.).
+- `src/client/`: frontend React (pages/, components/, contexts/, lib/, locales/).
+- `prisma/`: schema e migrations.
+- `docs/`: guia por subsistema (uma doc por subsistema; leia a relevante antes de mexer).
+- `scripts/`: utilitários (`set-admin.ts`, etc.).
+- `public/`: assets e `index.html`.
 
 ## Subir local
 ```sh

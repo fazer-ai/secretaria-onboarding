@@ -15,11 +15,11 @@ Leva um desenvolvedor de "quero mexer no código" até "implementou com as boas 
 
 ## Fluxo
 
-1. **Obter o código** (`references/00-get-the-code.md`) — bifurca por edição: Free clona o repo público (sem credencial); Pro clona via git proxy do hub (credencial per-user).
-2. **Layout + porta de qualidade** (`references/01-layout-and-bun-check.md`) — mapa do repo, `bun install`/`bun dev`, o ciclo `bun check`.
-3. **Free/Full + invariantes** (`references/02-free-full-and-invariants.md`) — markers `@full-only`, aditividade, e onde estão as convenções e os docs por subsistema.
-4. **Implementação conduzida** (`references/03-implement.md`) — perguntar o que implementar, desenhar desafiando premissas, implementar no estilo vizinho, validar.
-5. **Imagem própria + deploy** (`references/04-own-image-and-deploy.md`) — gerar a própria imagem e plugá-la num deploy (casa com o Tier C da `secretaria-onboarding`).
+1. **Obter o código** (`references/00-get-the-code.md`), bifurca por edição: Free clona o repo público (sem credencial); Pro clona via git proxy do hub (credencial per-user).
+2. **Layout + porta de qualidade** (`references/01-layout-and-bun-check.md`): mapa do repo, `bun install`/`bun dev`, o ciclo `bun check`.
+3. **Free/Full + invariantes** (`references/02-free-full-and-invariants.md`): markers `@full-only`, aditividade, e onde estão as convenções e os docs por subsistema.
+4. **Implementação conduzida** (`references/03-implement.md`): perguntar o que implementar, desenhar desafiando premissas, implementar no estilo vizinho, validar.
+5. **Imagem própria + deploy** (`references/04-own-image-and-deploy.md`): gerar a própria imagem e plugá-la num deploy (casa com o Tier C da `secretaria-onboarding`).
 
 ## Guardrails
 

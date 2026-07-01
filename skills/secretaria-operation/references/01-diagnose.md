@@ -6,8 +6,8 @@ Objetivo: de "a conversa deu errado" até "o estágio X divergiu por causa de Y"
 
 - No Chatwoot, a conversa tem um **`display_id`** (o número visível). É a âncora.
 - Chaves internas correlatas (você não digita, mas aparecem nos logs/traces):
-  - **Por-conversa** `tenant:instance:display_id` — usada por debounce, correlação de flowlog, fence de tenant e como **session no Langfuse**.
-  - **Memória do grafo** `tenant:instance:ci:<contactInboxId>` — o histórico que o agente "lembra" (por contato+canal). Uma conversa nova reusa essa memória; canais diferentes do mesmo contato têm memórias separadas.
+  - **Por-conversa** `tenant:instance:display_id`: usada por debounce, correlação de flowlog, fence de tenant e como **session no Langfuse**.
+  - **Memória do grafo** `tenant:instance:ci:<contactInboxId>`: o histórico que o agente "lembra" (por contato+canal). Uma conversa nova reusa essa memória; canais diferentes do mesmo contato têm memórias separadas.
 
 ## 2. Ler o ExecutionLog do turno
 

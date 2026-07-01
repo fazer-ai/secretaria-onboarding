@@ -24,12 +24,12 @@ O editor (`Tools` + `Knowledge`) edita **um** working set de grants e faz **PUT 
 
 `agent.settings.*`, ajustável no editor → Behavior e via `agent_settings_set` (patch parcial, merge nas sub-chaves, re-lido pelos readers tipados com clamp):
 
-- **debounce** — agrupa a rajada de mensagens e responde **uma vez** (on por padrão; `windowSeconds`, `maxMessagesPerBurst`, `maxWindowSeconds`).
-- **stt** — transcreve áudios recebidos (on por padrão, efetivo só com credencial; `provider`/`model`/`language`/`credentialRef`).
-- **tts** — responde em áudio: `mode` `never`|`mirror`|`preference` (default `never`).
-- **split** — quebra a resposta em balões com "digitando" (off por padrão; só texto).
-- **serviceWindow** — janela de 24h do WhatsApp para envios **proativos**: dentro = livre, fora = template HSM ou nota (on por padrão). Não afeta a resposta reativa.
-- **grounding** — limiar de distância (`maxDistance`) da busca na KB (distinto do grant RAG da aba Knowledge).
+- **debounce**: agrupa a rajada de mensagens e responde **uma vez** (on por padrão; `windowSeconds`, `maxMessagesPerBurst`, `maxWindowSeconds`).
+- **stt**: transcreve áudios recebidos (on por padrão, efetivo só com credencial; `provider`/`model`/`language`/`credentialRef`).
+- **tts**: responde em áudio: `mode` `never`|`mirror`|`preference` (default `never`).
+- **split**: quebra a resposta em balões com "digitando" (off por padrão; só texto).
+- **serviceWindow**: janela de 24h do WhatsApp para envios **proativos**: dentro = livre, fora = template HSM ou nota (on por padrão). Não afeta a resposta reativa.
+- **grounding**: limiar de distância (`maxDistance`) da busca na KB (distinto do grant RAG da aba Knowledge).
 
 ## Credenciais
 

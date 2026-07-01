@@ -24,7 +24,7 @@ Isso exercita o caminho de produção sem expor um cliente real. Faça nesse inb
 
 ## 4. Confirmar em produção
 
-Após aplicar, acompanhe os próximos turnos reais no `/logs` + Langfuse e confirme que o estágio que divergia agora passa. Se uma conversa real ficou com erro pendente, há um badge de erro + botão de **re-engage** na conversa (re-responde o tail não respondido) — use só com OK, é envio real ao cliente.
+Após aplicar, acompanhe os próximos turnos reais no `/logs` + Langfuse e confirme que o estágio que divergia agora passa. Se uma conversa real ficou com erro pendente, há um badge de erro + botão de **re-engage** na conversa (re-responde o tail não respondido), use só com OK, é envio real ao cliente.
 
 ## Tocar a conversa real diretamente (último recurso, efeito externo)
 
